@@ -19,45 +19,58 @@ def init_db():
         return
     conn = get_db()
     cursor = conn.cursor()
-    
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
-            username TEXT UNIQUE, 
-            password TEXT, 
+            username TEXT UNIQUE,
+            password TEXT,
             role TEXT,
             class_level TEXT DEFAULT '',
             subjects TEXT DEFAULT '',
             bio TEXT DEFAULT ''
         )
     ''')
-    
+
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS sessions (
             id SERIAL PRIMARY KEY,
             teacher_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
             student_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-            subject TEXT, 
-            check_in_time TEXT, 
+            subject TEXT,
+            check_in_time TEXT,
             check_out_time TEXT,
-            hours REAL, 
+            hours REAL,
             status TEXT DEFAULT 'Pending',
             payment_status TEXT DEFAULT 'Unpaid',
             lat REAL DEFAULT 0.0,
             lng REAL DEFAULT 0.0
         )
     ''')
-    
+
     # Insert default admin safely
     cursor.execute('''
-        INSERT INTO users (username, password, role) 
-        VALUES ('admin', 'admin123', 'admin') 
+        INSERT INTO users (username, password, role)
+        VALUES ('admin', 'admin123', 'admin')
         ON CONFLICT (username) DO NOTHING
     ''')
-    
+
     conn.commit()
     cursor.close()
     conn.close()
+
+# --- Secured Database Initialization Route ---
+@app.route('/initdb')
+def initialize_database():
+    # Protects the route from unauthorized users
+    secret_key = request.args.get('key')
+    
+    # You can change "brainspeed_admin_2026" to any secret password you prefer
+    if secret_key != "brainspeed_admin_2026":
+        return jsonify({"status": "error", "message": "Unauthorized. Invalid setup key."}), 403
+    
+    init_db()
+    return jsonify({"status": "success", "message": "Production Database Setup Complete! Tables verified."})
 
 # --- Page Routes ---
 @app.route('/')
@@ -80,7 +93,7 @@ def signup():
     conn = get_db()
     cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO users (username, password, role) VALUES (%s, %s, %s)", 
+        cursor.execute("INSERT INTO users (username, password, role) VALUES (%s, %s, %s)",
                        (data['username'].lower().strip(), data['password'], data['role']))
         conn.commit()
         return jsonify({"status": "success"})
@@ -96,12 +109,12 @@ def login():
     data = request.json
     conn = get_db()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
-    cursor.execute("SELECT * FROM users WHERE username=%s AND password=%s", 
+    cursor.execute("SELECT * FROM users WHERE username=%s AND password=%s",
                    (data['username'].lower().strip(), data['password']))
     user = cursor.fetchone()
     cursor.close()
     conn.close()
-    if user: 
+    if user:
         return jsonify({"status": "success", "role": user['role'], "user_id": user['id'], "username": user['username']})
     return jsonify({"status": "error", "message": "Invalid credentials"}), 401
 
@@ -111,13 +124,13 @@ def handle_profile(user_id):
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     if request.method == 'PUT':
         data = request.json
-        cursor.execute("UPDATE users SET class_level=%s, subjects=%s, bio=%s WHERE id=%s", 
+        cursor.execute("UPDATE users SET class_level=%s, subjects=%s, bio=%s WHERE id=%s",
                        (data.get('class_level', ''), data.get('subjects', ''), data.get('bio', ''), user_id))
         conn.commit()
         cursor.close()
         conn.close()
         return jsonify({"status": "success"})
-    
+
     cursor.execute("SELECT id, username, role, class_level, subjects, bio FROM users WHERE id=%s", (user_id,))
     user = cursor.fetchone()
     cursor.close()
@@ -161,20 +174,20 @@ def handle_sessions():
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     if request.method == 'POST':
         data = request.json
-        cursor.execute('''INSERT INTO sessions 
-            (teacher_id, student_id, subject, check_in_time, check_out_time, hours, status, lat, lng) 
-            VALUES (%s, %s, %s, %s, %s, %s, 'Pending', %s, %s)''', 
-            (data['teacher_id'], data['student_id'], data['subject'], data['check_in_time'], 
+        cursor.execute('''INSERT INTO sessions
+            (teacher_id, student_id, subject, check_in_time, check_out_time, hours, status, lat, lng)
+            VALUES (%s, %s, %s, %s, %s, %s, 'Pending', %s, %s)''',
+            (data['teacher_id'], data['student_id'], data['subject'], data['check_in_time'],
              data['check_out_time'], data['hours'], data.get('lat', 0.0), data.get('lng', 0.0)))
         conn.commit()
         cursor.close()
         conn.close()
         return jsonify({"status": "success"})
-    
-    query = '''SELECT s.*, t.username as teacher_name, st.username as student_name 
-               FROM sessions s 
-               JOIN users t ON s.teacher_id = t.id 
-               JOIN users st ON s.student_id = st.id 
+
+    query = '''SELECT s.*, t.username as teacher_name, st.username as student_name
+               FROM sessions s
+               JOIN users t ON s.teacher_id = t.id
+               JOIN users st ON s.student_id = st.id
                ORDER BY s.id DESC'''
     cursor.execute(query)
     sessions = cursor.fetchall()
@@ -186,8 +199,8 @@ def handle_sessions():
 def get_student_sessions(student_id):
     conn = get_db()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
-    cursor.execute('''SELECT s.*, t.username as teacher_name FROM sessions s 
-                      JOIN users t ON s.teacher_id = t.id 
+    cursor.execute('''SELECT s.*, t.username as teacher_name FROM sessions s
+                      JOIN users t ON s.teacher_id = t.id
                       WHERE s.student_id = %s ORDER BY s.id DESC''', (student_id,))
     sessions = cursor.fetchall()
     cursor.close()
@@ -198,8 +211,8 @@ def get_student_sessions(student_id):
 def get_teacher_sessions(teacher_id):
     conn = get_db()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
-    cursor.execute('''SELECT s.*, st.username as student_name FROM sessions s 
-                      JOIN users st ON s.student_id = st.id 
+    cursor.execute('''SELECT s.*, st.username as student_name FROM sessions s
+                      JOIN users st ON s.student_id = st.id
                       WHERE s.teacher_id = %s ORDER BY s.id DESC''', (teacher_id,))
     sessions = cursor.fetchall()
     cursor.close()
