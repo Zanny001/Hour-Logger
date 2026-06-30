@@ -2,19 +2,22 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from flask import Flask, request, jsonify, send_file
+from dotenv import load_dotenv
+
+# Load environment variables from the .env file (perfect for local testing)
+load_dotenv()
 
 app = Flask(__name__)
 
-# Fetch the Supabase URL from the server environment variables
+# Fetch the DB URL from the environment (Render or .env)
 DB_URL = os.environ.get("DATABASE_URL")
 
 def get_db():
     if not DB_URL:
-        raise ValueError("DATABASE_URL environment variable is missing.")
+        raise ValueError("DATABASE_URL environment variable is missing. Check your .env file or Render settings.")
     return psycopg2.connect(DB_URL)
 
 def init_db():
-    # Only runs when the app starts to ensure tables exist
     if not DB_URL:
         return
     conn = get_db()
@@ -38,6 +41,7 @@ def init_db():
             teacher_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
             student_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
             subject TEXT,
+            session_date TEXT DEFAULT '',
             check_in_time TEXT,
             check_out_time TEXT,
             hours REAL,
@@ -62,10 +66,7 @@ def init_db():
 # --- Secured Database Initialization Route ---
 @app.route('/initdb')
 def initialize_database():
-    # Protects the route from unauthorized users
     secret_key = request.args.get('key')
-    
-    # You can change "brainspeed_admin_2026" to any secret password you prefer
     if secret_key != "brainspeed_admin_2026":
         return jsonify({"status": "error", "message": "Unauthorized. Invalid setup key."}), 403
     
@@ -175,10 +176,10 @@ def handle_sessions():
     if request.method == 'POST':
         data = request.json
         cursor.execute('''INSERT INTO sessions
-            (teacher_id, student_id, subject, check_in_time, check_out_time, hours, status, lat, lng)
-            VALUES (%s, %s, %s, %s, %s, %s, 'Pending', %s, %s)''',
-            (data['teacher_id'], data['student_id'], data['subject'], data['check_in_time'],
-             data['check_out_time'], data['hours'], data.get('lat', 0.0), data.get('lng', 0.0)))
+            (teacher_id, student_id, subject, session_date, check_in_time, check_out_time, hours, status, lat, lng)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending', %s, %s)''',
+            (data['teacher_id'], data['student_id'], data['subject'], data.get('session_date', ''),
+             data['check_in_time'], data['check_out_time'], data['hours'], data.get('lat', 0.0), data.get('lng', 0.0)))
         conn.commit()
         cursor.close()
         conn.close()
@@ -219,6 +220,22 @@ def get_teacher_sessions(teacher_id):
     conn.close()
     return jsonify([dict(s) for s in sessions])
 
+@app.route('/api/sessions/auto-checkout', methods=['POST'])
+def auto_checkout_session():
+    data = request.json
+    teacher_id = data.get('teacher_id')
+    if not teacher_id:
+        return jsonify({"status": "error", "message": "Missing teacher_id"}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute('''UPDATE sessions SET status='Completed' 
+                      WHERE teacher_id=%s AND status='Pending' ''', (teacher_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return jsonify({"status": "success", "message": "Active sessions stopped automatically."})
+
 @app.route('/api/sessions/<int:session_id>/confirm', methods=['PUT'])
 def confirm_session(session_id):
     conn = get_db()
@@ -250,7 +267,5 @@ def delete_session(session_id):
     return jsonify({"status": "success"})
 
 if __name__ == '__main__':
-    # Initialize DB locally if running explicitly (Requires DATABASE_URL exported locally)
     init_db()
     app.run(host='0.0.0.0', port=5000)
-

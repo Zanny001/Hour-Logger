@@ -2,67 +2,75 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Student | Brainspeed International</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal | Brainspeed</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        :root { --primary: #4f46e5; --bg: #f8fafc; --card-bg: #ffffff; --text: #0f172a; --border: #e2e8f0; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 20px; max-width: 900px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 15px; border-bottom: 2px solid var(--border); }
-        .brand { color: var(--primary); font-weight: 800; font-size: 24px; }
-        .card { background: var(--card-bg); border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); padding: 30px; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 24px; }
-        .tab { padding: 10px 20px; background: #f1f5f9; border-radius: 9999px; cursor: pointer; font-weight: 600; color: #64748b; transition: all 0.3s; }
-        .tab.active { background: var(--primary); color: white; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4); }
-        .view { display: none; } .view.active { display: block; }
-        table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 14px; }
-        th, td { text-align: left; padding: 16px 12px; border-bottom: 1px solid var(--border); }
-        th { background-color: #f8fafc; font-weight: 600; color: #475569; }
-        .btn-confirm { background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.3s; }
-        .btn-confirm:hover { background: #059669; }
-        .badge { padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; }
-        .badge.pending { background: #fef08a; color: #854d0e; }
-        .badge.confirmed { background: #d1fae5; color: #065f46; }
-        input, textarea { width: 100%; padding: 14px; margin: 8px 0 20px 0; border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter'; box-sizing: border-box; }
-        .btn-save { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; }
-        .logout { color: #ef4444; text-decoration: none; font-weight: 600; cursor: pointer; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        :root { --primary: #2563eb; --primary-hover: #1d4ed8; --bg-gradient: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); --card-bg: rgba(255, 255, 255, 0.95); --text: #0f172a; --text-muted: #475569; --border: #e2e8f0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-gradient); color: var(--text); padding: 3vw; min-height: 100vh; margin: 0; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 900px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 20px 30px; background: var(--card-bg); border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); backdrop-filter: blur(10px); }
+        .brand { color: var(--primary); font-weight: 800; font-size: 22px; letter-spacing: -0.5px; }
+        .card { background: var(--card-bg); border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); padding: 40px; border: 1px solid rgba(255,255,255,0.8); }
+        .tabs { display: flex; gap: 10px; margin-bottom: 30px; background: white; padding: 6px; border-radius: 9999px; display: inline-flex; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .tab { padding: 10px 24px; border-radius: 9999px; cursor: pointer; font-weight: 600; color: var(--text-muted); transition: all 0.3s ease; font-size: 14px; }
+        .tab.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3); }
+        .view { display: none; animation: fadeIn 0.4s ease; } .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 16px; font-size: 14px; }
+        th, td { text-align: left; padding: 16px; border-bottom: 1px solid var(--border); }
+        th { background-color: #f8fafc; font-weight: 600; color: var(--text-muted); text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+        tr:hover td { background: #f8fafc; transition: background 0.2s; }
+        .btn-confirm { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
+        .btn-confirm:hover { background: #059669; transform: translateY(-2px); }
+        .badge { padding: 6px 12px; border-radius: 9999px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge.pending { background: #fef08a; color: #854d0e; } .badge.confirmed { background: #d1fae5; color: #065f46; }
+        input, textarea { width: 100%; padding: 16px; margin: 8px 0 24px 0; border: 1px solid var(--border); border-radius: 12px; font-family: 'Inter'; box-sizing: border-box; background: #f8fafc; outline: none; transition: border-color 0.3s; }
+        input:focus, textarea:focus { border-color: var(--primary); }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; cursor: pointer; font-weight: 600; width: 100%; transition: all 0.3s; font-size: 16px; }
+        .btn-save:hover { background: var(--primary-hover); }
+        .logout { color: #ef4444; text-decoration: none; font-weight: 600; cursor: pointer; font-size: 14px; padding: 8px 16px; border-radius: 8px; transition: background 0.2s; }
+        .logout:hover { background: #fee2e2; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="brand">Brainspeed International</div>
-        <div style="display:flex; align-items:center; gap:20px;">
-            <span style="font-weight:600;">Hi, <span id="studentNameDisplay"></span></span>
-            <a class="logout" onclick="localStorage.clear(); window.location.href='/'">Logout</a>
-        </div>
-    </div>
-    
-    <div class="tabs">
-        <div class="tab active" onclick="switchTab('lessons', this)">My Lessons</div>
-        <div class="tab" onclick="switchTab('profile', this)">Academic Profile</div>
-    </div>
-
-    <div class="card">
-        <!-- Lessons View -->
-        <div id="lessons-view" class="view active">
-            <h3 style="margin-top:0;">Pending & Confirmed Sessions</h3>
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead><tr><th>Teacher</th><th>Subject</th><th>Hours</th><th>Status</th><th>Action</th></tr></thead>
-                    <tbody id="studentTableBody"></tbody>
-                </table>
+    <div class="container">
+        <div class="header">
+            <div class="brand">✨ Brainspeed Student</div>
+            <div style="display:flex; align-items:center; gap:20px;">
+                <span style="font-weight:600; color: var(--text-muted); font-size: 15px;">Welcome, <span id="studentNameDisplay" style="color: var(--text);"></span></span>
+                <a class="logout" onclick="localStorage.clear(); window.location.href='/'">Sign Out</a>
             </div>
         </div>
 
-        <!-- Profile View -->
-        <div id="profile-view" class="view">
-            <h3 style="margin-top:0;">My Enrollment Details</h3>
-            <label style="font-weight:600; font-size:14px; color:#475569;">Current Class / Grade Level</label>
-            <input type="text" id="classLevel" placeholder="e.g., SSS 3, Year 10, Grade 12">
-            
-            <label style="font-weight:600; font-size:14px; color:#475569;">Registered Subjects (Comma Separated)</label>
-            <textarea id="subjects" rows="4" placeholder="e.g., Mathematics, Physics, Chemistry"></textarea>
-            
-            <button class="btn-save" onclick="saveProfile()">Save Profile Information</button>
+        <div style="text-align: center;">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('lessons', this)">Academic Dashboard</div>
+                <div class="tab" onclick="switchTab('profile', this)">Enrollment Profile</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div id="lessons-view" class="view active">
+                <h2 style="margin-top:0; font-weight:800; font-size: 24px;">Lesson Approvals</h2>
+                <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 12px;">
+                    <table>
+                        <thead><tr><th>Date</th><th>Educator</th><th>Subject Taught</th><th>Logged Hrs</th><th>Clearance</th><th>Action</th></tr></thead>
+                        <tbody id="studentTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="profile-view" class="view">
+                <h2 style="margin-top:0; font-weight:800; font-size: 24px;">Academic Information</h2>
+                <label style="font-weight:600; font-size:13px; color:var(--text-muted); text-transform:uppercase;">Current Grade / Level</label>
+                <input type="text" id="classLevel" placeholder="e.g., SSS 3, Year 10, Grade 12">
+
+                <label style="font-weight:600; font-size:13px; color:var(--text-muted); text-transform:uppercase;">Registered Coursework</label>
+                <textarea id="subjects" rows="4" placeholder="Detail your active subjects..."></textarea>
+
+                <button class="btn-save" onclick="saveProfile()">💾 Synchronize Profile</button>
+            </div>
         </div>
     </div>
 
@@ -82,8 +90,8 @@
             const sessions = await res.json();
             const tbody = document.getElementById('studentTableBody'); tbody.innerHTML = '';
             sessions.forEach(s => {
-                const actionBtn = s.status === 'Pending' ? `<button class="btn-confirm" onclick="confirmSession(${s.id})">Confirm</button>` : `<span style="color:#10b981; font-weight:600;">✓ Verified</span>`;
-                tbody.innerHTML += `<tr><td>${s.teacher_name}</td><td>${s.subject}</td><td><strong>${s.hours}</strong></td><td><span class="badge ${s.status.toLowerCase()}">${s.status}</span></td><td>${actionBtn}</td></tr>`;
+                const actionBtn = s.status === 'Pending' ? `<button class="btn-confirm" onclick="confirmSession(${s.id})">Approve</button>` : `<span style="color:#10b981; font-weight:700; background:#dcfce3; padding:6px 12px; border-radius:8px;">✓ Verified</span>`;
+                tbody.innerHTML += `<tr><td style="font-weight:500;">${s.session_date || '-'}</td><td style="color:var(--primary); font-weight:600;">${s.teacher_name}</td><td>${s.subject}</td><td><strong style="background:#f1f5f9; padding:4px 8px; border-radius:4px;">${s.hours}</strong></td><td><span class="badge ${s.status.toLowerCase()}">${s.status}</span></td><td>${actionBtn}</td></tr>`;
             });
         }
 
@@ -98,13 +106,12 @@
             const class_level = document.getElementById('classLevel').value;
             const subjects = document.getElementById('subjects').value;
             await fetch(`/api/profile/${studentId}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({class_level, subjects}) });
-            alert("Profile successfully updated!");
+            alert("Enrollment data synchronized.");
         }
 
         async function confirmSession(id) { await fetch(`/api/sessions/${id}/confirm`, { method: 'PUT' }); loadStudentData(); }
-        
-        loadStudentData();
-        loadProfile();
+
+        loadStudentData(); loadProfile();
     </script>
 </body>
 </html>
